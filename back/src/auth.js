@@ -5,6 +5,7 @@ import { prisma } from './db.js'
 
 const ACCESS_TTL = '15m'
 const REFRESH_TTL = '7d'
+const MIN_PASSWORD_LENGTH = 8
 
 // "sub" doit être une chaîne dans un JWT, alors que l'id Prisma est un Int
 const signAccess = (user) =>
@@ -12,6 +13,21 @@ const signAccess = (user) =>
 
 const signRefresh = (user) =>
     jwt.sign({ sub: String(user.id) }, process.env.JWT_REFRESH_SECRET, { expiresIn: REFRESH_TTL })
+
+// Mêmes règles que le formulaire d'inscription du front.
+// Renvoie un message d'erreur, ou null si le mot de passe est valide.
+function validatePassword(password) {
+    if (password.length < MIN_PASSWORD_LENGTH) {
+        return `Mot de passe trop court (${MIN_PASSWORD_LENGTH} caractères min.)`
+    }
+    if (!/[A-Z]/.test(password)) {
+        return 'Le mot de passe doit contenir au moins une majuscule'
+    }
+    if (!/\d/.test(password)) {
+        return 'Le mot de passe doit contenir au moins un chiffre'
+    }
+    return null
+}
 
 const router = Router()
 
@@ -37,11 +53,13 @@ export function requireAuth(req, res, next) {
 router.post('/register', async (req, res) => {
     try {
         const { email, password } = req.body ?? {}
-        if (!email || !password) {
+        if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
             return res.status(400).json({ error: 'Email et mot de passe requis' })
         }
-        if (password.length < 8) {
-            return res.status(400).json({ error: 'Mot de passe trop court (8 caractères min.)' })
+
+        const passwordError = validatePassword(password)
+        if (passwordError) {
+            return res.status(400).json({ error: passwordError })
         }
 
         const passwordHash = await bcrypt.hash(password, 10)
@@ -63,7 +81,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body ?? {}
-        if (!email || !password) {
+        if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
             return res.status(400).json({ error: 'Email et mot de passe requis' })
         }
 

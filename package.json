@@ -1,7 +1,10 @@
 {
   "name": "seenflix",
   "private": true,
-  "workspaces": ["front", "back"],
+  "workspaces": [
+    "front",
+    "back"
+  ],
   "scripts": {
     "setup": "npm install && npm run db:migrate -w back && npm run db:generate -w back && npm run db:seed -w back",
     "dev": "concurrently -n api,web -c blue,green \"npm run dev -w back\" \"npm run dev -w front\"",
@@ -11,6 +14,9 @@
   "devDependencies": {
     "concurrently": "^9.0.0",
     "oxlint": "^1.90.0"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "tailwindcss": "^4.3.5"
   }
 }
-
