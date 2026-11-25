@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { addFavorite, FavoriteAlreadyExistsError } from '../services/favorites.service.js'
+import { addFavorite, listFavorites, FavoriteAlreadyExistsError } from '../services/favorites.service.js'
 
 const router = Router()
 
@@ -9,6 +9,16 @@ const addFavoriteSchema = z.object({
   type: z.enum(['movie', 'tv']),
   rating: z.number().int().min(1).max(5).optional(),
   comment: z.string().max(1000).optional(),
+})
+
+router.get('/', async (req, res) => {
+  try {
+    const favorites = await listFavorites(req.userId)
+    return res.status(200).json(favorites)
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: { message: 'Erreur serveur', code: 'INTERNAL_ERROR' } })
+  }
 })
 
 router.post('/', async (req, res) => {

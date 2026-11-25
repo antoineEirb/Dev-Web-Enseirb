@@ -14,3 +14,10 @@ export async function addFavorite(userId, { tmdbId, type, rating, comment }) {
     throw err
   }
 }
+
+export async function listFavorites(userId) {
+  return prisma.favorite.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+  })
+}
