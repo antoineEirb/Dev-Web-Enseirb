@@ -1,7 +1,8 @@
 import 'dotenv/config'
 import express from 'express'
-import authRouter from './auth.js'
+import authRouter, { requireAuth } from './auth.js'
 import searchContent from './tmdb.js'
+import favoritesRouter from './routes/favorites.routes.js'
 
 const app = express()
 app.use(express.json())
@@ -9,6 +10,7 @@ app.use(express.json())
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 app.use('/api/auth', authRouter)
+app.use('/me/favorites', requireAuth, favoritesRouter)
 
 
 app.get('/movies/search', async (req, res) => {
