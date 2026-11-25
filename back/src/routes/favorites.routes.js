@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { addFavorite, FavoriteAlreadyExistsError } from '../services/favorites.service.js'
+import { addFavorite, FavoriteAlreadyExistsError, removeFavorite } from '../services/favorites.service.js'
 
 const router = Router()
 
@@ -22,7 +22,8 @@ router.post('/', async (req, res) => {
     return res.status(201).json(favorite)
   } catch (err) {
     if (err instanceof FavoriteAlreadyExistsError) {
-      return res.status(409).json({ error: { message: err.message, code: 'CONFLICT' } })
+      const favoriteRemoved = await removeFavorite(req.userId,parsed.data.tmdbId,parsed.data.type);
+      return res.status(202).json(favoriteRemoved.tmdbId);
     }
     console.error(err)
     return res.status(500).json({ error: { message: 'Erreur serveur', code: 'INTERNAL_ERROR' } })
